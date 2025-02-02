@@ -22,7 +22,7 @@ if (owner():keySprint()) {
     MLT = 12
 }
 
-interval(1)  # Run every 50ms (20 times per second)
+interval(1)
 
 if (Player:isValid() && Chair:driver() == Player) { 
     #### Body
