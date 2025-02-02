@@ -1,0 +1,167 @@
+@name The Entity System
+@inputs TargetEntityHead:entity TargetEntityBody:entity TargetEntityArm11:entity TargetEntityArm12:entity TargetEntityArm21:entity TargetEntityArm22:entity TargetEntityLeg1:entity TargetEntityLeg2:entity Chair:entity
+@persist Player:entity WalkCycle:number Frame:number AnimationSpeed:number
+@trigger all
+
+### Get the player associated with this chip
+if (first()) {
+    print("\n+~---==========================---~+\nRobot Entity Character System\nMade by HellYeah24, A player with a dissasembly drone outfit ;P\nAlso thank you user, "+owner():name()+" for using this :D\n+~---==========================---~+\n")
+    Player = owner()
+    WalkCycle = 0
+    Frame = 0
+    AnimationSpeed = 0.1
+}
+
+Angle = owner():eyeAngles()
+Yaw = Angle:yaw()
+Pitch = Angle:pitch()
+
+if (owner():keySprint()) {
+    MLT = 100
+} else {
+    MLT = 12
+}
+
+interval(1)  # Run every 50ms (20 times per second)
+
+if (Player:isValid() && Chair:driver() == Player) { 
+    #### Body
+    ### Set the position of the target entity to the player location
+    TargetPosition = Player:pos() + vec(0, 0, 40) # Use eye position for more accurate following
+    TargetEntityBody:setPos(TargetPosition)
+
+    ### Get player aim angle and set entity angle accordingly
+    AimAngle = Player:eyeAngles() * ang(0.2, 1, 1)
+    TargetEntityBody:setAng(AimAngle)
+    #### End Body
+
+    #### Head
+    TargetPosition = TargetEntityBody:pos() + TargetEntityBody:up() * 25
+    TargetEntityHead:setPos(TargetPosition)
+    TargetEntityHead:setAng(TargetEntityBody:angles() * ang(4, 1, 1))
+    #### End Head
+
+    #### Legs Positioning (Walking Animation)
+    if (owner():keyPressed("W") | owner():keyPressed("A") | owner():keyPressed("S") | owner():keyPressed("D")) {
+        Frame += AnimationSpeed
+        if (Frame > 1) { Frame = 0 }
+
+        SwingOffset = sin(Frame * 360) * 2
+
+        ### Left Leg Animation
+        TargetPosition = TargetEntityBody:pos() + TargetEntityBody:right() * -5 + TargetEntityBody:up() * -35 + TargetEntityBody:forward() * SwingOffset
+        TargetEntityLeg1:setPos(TargetPosition)
+        TargetEntityLeg1:setAng(TargetEntityBody:angles() * ang(1.8 + SwingOffset * 5, 1, 1))
+
+        ### Right Leg Animation
+        TargetPosition = TargetEntityBody:pos() + TargetEntityBody:right() * 5 + TargetEntityBody:up() * -35 + TargetEntityBody:forward() * -SwingOffset
+        TargetEntityLeg2:setPos(TargetPosition)
+        TargetEntityLeg2:setAng(TargetEntityBody:angles() * ang(1.8 - SwingOffset * 5, 1, 1))
+    } else {
+        ### Static Position for Legs
+        TargetPosition = TargetEntityBody:pos() + TargetEntityBody:right() * -5 + TargetEntityBody:up() * -35
+        TargetEntityLeg1:setPos(TargetPosition)
+        TargetEntityLeg1:setAng(TargetEntityBody:angles() * ang(1.8, 1, 1))
+
+        TargetPosition = TargetEntityBody:pos() + TargetEntityBody:right() * 5 + TargetEntityBody:up() * -35
+        TargetEntityLeg2:setPos(TargetPosition)
+        TargetEntityLeg2:setAng(TargetEntityBody:angles() * ang(1.8, 1, 1))
+    }
+    #### End Legs
+    
+    #### Arms Positioning (Walking Animation)
+    if (owner():keyPressed("W") | owner():keyPressed("A") | owner():keyPressed("S") | owner():keyPressed("D")) {
+        Frame += AnimationSpeed
+        if (Frame > 1) { Frame = 0 }
+
+        SwingOffset = sin(Frame * 360) * 2
+
+        ### Left Arm Animation
+        TargetPosition = TargetEntityBody:pos() + TargetEntityBody:right() * -15 + TargetEntityBody:forward() * SwingOffset
+        TargetEntityArm11:setPos(TargetPosition)
+        TargetEntityArm11:setAng(TargetEntityBody:angles() * ang(1.8 + SwingOffset * 5, 1, 1))
+
+        ### Right Arm Animation
+        TargetPosition = TargetEntityBody:pos() + TargetEntityBody:right() * 15 + TargetEntityBody:forward() * -SwingOffset
+        TargetEntityArm21:setPos(TargetPosition)
+        TargetEntityArm21:setAng(TargetEntityBody:angles() * ang(1.8 - SwingOffset * 5, 1, 1))
+    } else {
+        ### Static Position for Arms
+        TargetPosition = TargetEntityBody:pos() + TargetEntityBody:right() * -15
+        TargetEntityArm11:setPos(TargetPosition)
+        TargetEntityArm11:setAng(TargetEntityBody:angles() * ang(1.8, 1, 1))
+
+        TargetPosition = TargetEntityBody:pos() + TargetEntityBody:right() * 15
+        TargetEntityArm21:setPos(TargetPosition)
+        TargetEntityArm21:setAng(TargetEntityBody:angles() * ang(1.8, 1, 1))
+    }
+    #### End Arms
+    
+    #### Left Arm
+    TargetPosition = TargetEntityArm11:pos() + TargetEntityBody:right() * -5 + TargetEntityArm11:up() * -20
+    TargetEntityArm12:setPos(TargetPosition)
+    TargetEntityArm12:setAng(TargetEntityArm11:angles())
+    #### End Left Arm
+
+    #### Right Arm
+    TargetPosition = TargetEntityArm21:pos() + TargetEntityBody:right() * 5 + TargetEntityArm21:up() * -20
+    TargetEntityArm22:setPos(TargetPosition)
+    TargetEntityArm22:setAng(TargetEntityArm21:angles())
+    #### End Right Arm
+
+    #### Chair Moving Function
+    owner():setMaterial("Models/effects/vol_light001")
+    owner():setColor(0, 0, 0, 0)
+
+    if (owner():keyForward()) {
+        ZRES = -1 * (MLT * sin(Pitch))
+        XRES = (MLT * cos(Pitch) * sin(Yaw))
+        YRES = (MLT * cos(Pitch) * cos(Yaw))
+    } elseif (owner():keyBack()) {
+        ZRES = (MLT * sin(Pitch))
+        XRES = -1 * (MLT * cos(Pitch) * sin(Yaw))
+        YRES = -1 * (MLT * cos(Pitch) * cos(Yaw))
+    } else {
+        XRES = 0
+        YRES = 0
+        ZRES = 0
+    }
+
+    if (owner():keyRight()) {
+        XRES2 = (MLT * 1 * sin(Yaw - 90))
+        YRES2 = (MLT * 1 * cos(Yaw - 90))
+    } else {
+        XRES2 = 0
+        YRES2 = 0  
+    }
+
+    if (owner():keyLeft()) {
+        XRES2 = (MLT * 1 * sin(Yaw + 90))
+        YRES2 = (MLT * 1 * cos(Yaw + 90))
+    } else {
+        XRES3 = 0
+        YRES3 = 0  
+    }
+
+    if (owner():keyJump()) {
+        ZRES2 = (10 * MLT) * 0.1
+    } else {
+        ZRES2 = 0
+    }
+
+    if (owner():keyWalk()) {
+        ZRES3 = (-10 * MLT) * 0.1
+    } else {
+        ZRES3 = 0
+    }
+
+    ADDVECTOR = vec((YRES + YRES2 + YRES3), (XRES + XRES2 + XRES3), (ZRES + ZRES2 + ZRES3))
+    if (owner():keyPressed("W") | owner():keyPressed("A") | owner():keyPressed("S") | owner():keyPressed("D") | owner():keyPressed("LALT") | owner():keyPressed("SPACE")) {
+        Chair:setPos((Chair:pos()) + ADDVECTOR)
+    }
+} elseif (Chair:driver() != owner() & Chair:driver()) {
+    owner():setMaterial("default")
+} else {
+    owner():setMaterial("default")
+    owner():setColor(255, 255, 255, 255)
+}
